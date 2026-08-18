@@ -1,0 +1,22 @@
+from app.models.models import (
+    User,
+    UserRole,
+    Citizen,
+    Department,
+    Officer,
+    OfficerStatus,
+    Complaint,
+    ComplaintStatus,
+    ComplaintSource,
+    SeverityLevel,
+    UrgencyLevel,
+    SentimentType,
+    PriorityLevel,
+    SLARiskLevel,
+    ComplaintDuplicate,
+    ComplaintEvent,
+    EventType,
+    Notification,
+    NotificationType,
+    AIAnalysis
+)
