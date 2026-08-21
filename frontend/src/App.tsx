@@ -13,6 +13,7 @@ import { OfficerDashboard } from './pages/OfficerDashboard';
 import { CitizenPortal } from './pages/CitizenPortal';
 import { Hotspots } from './pages/Hotspots';
 import { Analytics } from './pages/Analytics';
+import { EmergencyCommand } from './pages/EmergencyCommand';
 import { Login } from './pages/Login';
 
 const MainApp: React.FC = () => {
@@ -78,6 +79,8 @@ const MainApp: React.FC = () => {
             <Hotspots onSelectComplaint={handleSelectComplaint} />
           ) : currentView === 'analytics' ? (
             <Analytics />
+          ) : currentView === 'emergency-command' ? (
+            <EmergencyCommand />
           ) : (
             <Dashboard
               onNavigateToCalls={() => handleNavigate('live-calls')}

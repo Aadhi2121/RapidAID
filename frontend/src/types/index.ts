@@ -251,3 +251,295 @@ export interface AnalyticsHotspots {
   hotspots: HotspotPoint[];
   critical_zones: { zone: string; cluster_size: number; primary_issue: string; risk: string }[];
 }
+
+// ============================================================================
+// rapidAID EMERGENCY MODULE TYPES
+// ============================================================================
+
+export type EmergencyMode = 'NORMAL' | 'ELEVATED' | 'HIGH_ALERT' | 'DISASTER';
+
+export type EmergencyType =
+  | 'ROAD_ACCIDENT'
+  | 'BUILDING_COLLAPSE'
+  | 'FIRE'
+  | 'INDUSTRIAL_ACCIDENT'
+  | 'FLOOD'
+  | 'CYCLONE'
+  | 'HAZMAT'
+  | 'MASS_CASUALTY'
+  | 'OTHER';
+
+export type ResourceCategory = 'AMBULANCE' | 'FIRE_RESCUE' | 'SPECIALIZED' | 'MEDICAL_TEAM';
+
+export type ResourceType =
+  | 'BLS_AMBULANCE'
+  | 'ALS_AMBULANCE'
+  | 'VENTILATOR_AMBULANCE'
+  | 'FIRE_ENGINE'
+  | 'LADDER_TRUCK'
+  | 'HAZMAT_UNIT'
+  | 'RESCUE_VEHICLE'
+  | 'HEAVY_RESCUE_TEAM';
+
+export type ResourceStatus =
+  | 'AVAILABLE'
+  | 'DISPATCHED'
+  | 'EN_ROUTE'
+  | 'ON_SCENE'
+  | 'RETURNING'
+  | 'MAINTENANCE';
+
+export type HospitalStatus = 'ACCEPTING' | 'LIMITED' | 'NEAR_CAPACITY' | 'FULL';
+
+export type PatientTriageStatus = 'CRITICAL' | 'MODERATE' | 'MINOR' | 'DECEASED' | 'PENDING';
+
+export type PatientRescueStatus = 'TRAPPED' | 'BEING_RESCUED' | 'RESCUED' | 'TRANSPORTING' | 'HOSPITALIZED';
+
+export type LocationSource =
+  | 'CALLER_GPS'
+  | 'DEVICE_GPS'
+  | 'INCIDENT_LOCATION'
+  | 'AMBULANCE_GPS'
+  | 'HOSPITAL_LOCATION'
+  | 'ESTIMATED'
+  | 'MANUAL';
+
+export type LocationConfidence = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export type DispatchStatus =
+  | 'RECOMMENDED'
+  | 'DISPATCHED'
+  | 'EN_ROUTE'
+  | 'ON_SCENE'
+  | 'TRANSPORTING'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export interface EmergencyModeResponse {
+  current_mode: EmergencyMode;
+  updated_at: string;
+  history?: {
+    id: number;
+    previous_mode: string;
+    new_mode: string;
+    changed_by: string;
+    reason: string;
+    timestamp: string;
+  }[];
+}
+
+export interface PatientEmergencyRecord {
+  id: string; // e.g. PAT-1001
+  emergency_id: string;
+  triage_status: PatientTriageStatus;
+  rescue_status: PatientRescueStatus;
+  incident_location?: string;
+  current_latitude?: number;
+  current_longitude?: number;
+  location_source: LocationSource;
+  location_confidence: LocationConfidence;
+  assigned_ambulance?: string;
+  destination_hospital?: string;
+  ventilator_requirement: boolean;
+  notes?: string;
+  last_updated: string;
+  created_at: string;
+}
+
+export interface ResourceDispatch {
+  id: string;
+  incident_id: string;
+  resource_id: string;
+  resource_name?: string;
+  resource_type?: string;
+  status: DispatchStatus;
+  eta_minutes: number;
+  reasoning?: string;
+  recommended_at: string;
+  dispatched_at?: string;
+  confirmed_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmergencyIncident {
+  id: string;
+  type: EmergencyType;
+  title: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  location_name: string;
+  injured_count: number;
+  critical_count: number;
+  trapped_count: number;
+  vulnerable_count: number;
+  fire_severity: string;
+  fire_spread_risk: string;
+  collapse_risk: string;
+  hazmat_risk: string;
+  road_accessibility: string;
+  traffic_level: string;
+  population_density: string;
+  required_capabilities?: string[];
+  priority_score: number;
+  priority_level: PriorityLevel;
+  status: 'ACTIVE' | 'CONTAINED' | 'RESOLVED';
+  created_at: string;
+  updated_at: string;
+  patients?: PatientEmergencyRecord[];
+  dispatches?: ResourceDispatch[];
+}
+
+export interface EmergencyResource {
+  id: string;
+  name: string;
+  resource_type: ResourceType;
+  category: ResourceCategory;
+  latitude: number;
+  longitude: number;
+  location: string;
+  availability: boolean;
+  status: ResourceStatus;
+  capacity: number;
+  equipment?: string[];
+  capabilities?: string[];
+  oxygen_capability: boolean;
+  ventilator_capability: boolean;
+  paramedic_capability: boolean;
+  ladder_capability: boolean;
+  hazmat_capability: boolean;
+  heavy_rescue_capability: boolean;
+  current_assignment?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Hospital {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  total_beds: number;
+  available_beds: number;
+  emergency_beds: number;
+  available_emergency_beds: number;
+  icu_beds: number;
+  available_icu_beds: number;
+  ventilators: number;
+  available_ventilators: number;
+  trauma_capability: boolean;
+  operating_theatre_availability: number;
+  emergency_department_occupancy: number;
+  incoming_patient_count: number;
+  status: HospitalStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HospitalCapacityOverview {
+  total_hospitals: number;
+  total_icu_beds: number;
+  available_icu_beds: number;
+  total_er_beds: number;
+  available_er_beds: number;
+  total_ventilators: number;
+  available_ventilators: number;
+  avg_occupancy: number;
+  hospitals: Hospital[];
+}
+
+export interface BypassedHospital {
+  hospital_name: string;
+  eta_minutes: number;
+  reason: string;
+}
+
+export interface HospitalRoutingDecision {
+  recommended_hospital?: Hospital;
+  hospital_score: number;
+  eta_minutes: number;
+  reasons: string[];
+  bypassed_hospitals: BypassedHospital[];
+}
+
+export interface AllocatedDispatchItem {
+  incident_id: string;
+  incident_title: string;
+  resource_id: string;
+  resource_name: string;
+  resource_type: string;
+  eta_minutes: number;
+  suitability_score: number;
+  reasoning: string;
+  status: DispatchStatus;
+}
+
+export interface ResourceConflictAlert {
+  resource_id: string;
+  resource_type: string;
+  contending_incidents: string[];
+  awarded_to_incident_id: string;
+  reason: string;
+}
+
+export interface ResourceShortageAlert {
+  capability: string;
+  required_count: number;
+  available_count: number;
+  deficit: number;
+  severity: string;
+  message: string;
+}
+
+export interface GlobalAllocationResult {
+  emergency_mode: EmergencyMode;
+  active_incidents_count: number;
+  allocated_dispatches: AllocatedDispatchItem[];
+  conflicts: ResourceConflictAlert[];
+  shortages: ResourceShortageAlert[];
+  mitigations: string[];
+  hospital_routings: Record<string, HospitalRoutingDecision>;
+}
+
+export interface EmergencyAnalytics {
+  emergency_mode: EmergencyMode;
+  active_incidents: number;
+  total_casualties: number;
+  critical_casualties: number;
+  trapped_victims: number;
+  available_ambulances: number;
+  total_ambulances: number;
+  available_fire_units: number;
+  total_fire_units: number;
+  total_icu_beds: number;
+  available_icu_beds: number;
+  total_er_beds: number;
+  available_er_beds: number;
+  avg_hospital_occupancy: number;
+  avg_dispatch_time_minutes: number;
+  avg_response_time_minutes: number;
+  ambulance_utilization_rate: number;
+  fire_rescue_utilization_rate: number;
+  icu_utilization_rate: number;
+  resource_conflicts_detected: number;
+  resource_shortages_detected: number;
+  emergency_hotspots: {
+    incident_id: string;
+    title: string;
+    location_name: string;
+    latitude: number;
+    longitude: number;
+    priority_score: number;
+    critical_count: number;
+    status: string;
+  }[];
+  predictive_insights: {
+    type: string;
+    title: string;
+    description: string;
+    confidence: number;
+    recommended_action: string;
+  }[];
+}
+

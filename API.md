@@ -1,4 +1,4 @@
-# CivicAI — REST API Documentation
+# rapidAID — REST API Documentation
 
 Base URL: `/api`
 Interactive Swagger UI: `http://localhost:8000/docs`

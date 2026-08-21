@@ -9,10 +9,12 @@ import {
   TrendingUp,
   Cpu,
   ShieldAlert,
+  Siren,
 } from 'lucide-react';
 
 export type NavItem =
   | 'dashboard'
+  | 'emergency-command'
   | 'live-calls'
   | 'complaints'
   | 'officer-dashboard'
@@ -29,11 +31,18 @@ export const Sidebar: React.FC<Props> = ({ currentView, onNavigate }) => {
   const navItems: { id: NavItem; label: string; icon: any; badge?: string; badgeColor?: string }[] = [
     { id: 'dashboard', label: 'Admin Command', icon: LayoutDashboard },
     {
+      id: 'emergency-command',
+      label: 'Emergency Command',
+      icon: Siren,
+      badge: 'AI ALLOC',
+      badgeColor: 'bg-rose-950 text-rose-300 border-rose-800/80 animate-pulse font-bold',
+    },
+    {
       id: 'live-calls',
       label: 'Live Call Intelligence',
       icon: PhoneCall,
       badge: 'LIVE',
-      badgeColor: 'bg-rose-950 text-rose-300 border-rose-800/80 animate-pulse',
+      badgeColor: 'bg-indigo-950 text-indigo-300 border-indigo-800/80',
     },
     { id: 'complaints', label: 'Complaints Queue', icon: Inbox },
     { id: 'officer-dashboard', label: 'Officer Dashboard', icon: UserCheck },
@@ -50,9 +59,9 @@ export const Sidebar: React.FC<Props> = ({ currentView, onNavigate }) => {
           <Cpu className="h-5 w-5" />
         </div>
         <div>
-          <span className="font-extrabold text-white text-lg tracking-tight">CivicAI</span>
+          <span className="font-extrabold text-white text-lg tracking-tight">rapidAID</span>
           <span className="block text-[10px] uppercase font-bold tracking-widest text-civic-400">
-            Intelligence Platform
+            Command Station
           </span>
         </div>
       </div>
@@ -101,10 +110,10 @@ export const Sidebar: React.FC<Props> = ({ currentView, onNavigate }) => {
         <div className="p-3 rounded-xl border border-slate-800 bg-slate-900/60">
           <div className="flex items-center gap-2 text-xs font-bold text-white mb-1">
             <ShieldAlert className="h-4 w-4 text-civic-400" />
-            <span>Civic Resilience 2026</span>
+            <span>rapidAID Resilience 2026</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-snug">
-            AI-assisted triage ensuring rapid municipal resolution under strict statutory SLAs.
+            AI-assisted triage ensuring rapid emergency response and statutory municipal SLA resolution.
           </p>
         </div>
       </div>

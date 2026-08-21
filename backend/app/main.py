@@ -12,22 +12,22 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-logger = logging.getLogger("civicai")
+logger = logging.getLogger("rapidAID")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Ensure tables exist and seed database
-    logger.info("Initializing CivicAI Database and AI Subsystems...")
+    logger.info("Initializing rapidAID Database and AI Subsystems...")
     Base.metadata.create_all(bind=engine)
     seed_database()
-    logger.info("CivicAI Backend started successfully.")
+    logger.info("rapidAID Backend started successfully.")
     yield
-    logger.info("CivicAI Backend shutting down.")
+    logger.info("rapidAID Backend shutting down.")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="CivicAI — AI-Powered Citizen Call Intelligence & Predictive Governance Platform",
+    description="rapidAID — AI-Powered Citizen Call Intelligence & Emergency Resource Allocation Platform",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -59,7 +59,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 def health_check():
     return {
         "status": "healthy",
-        "service": "CivicAI Backend API",
+        "service": "rapidAID Backend API",
         "version": settings.VERSION,
         "ai_mode": settings.AI_MODE,
         "documentation": "/docs"

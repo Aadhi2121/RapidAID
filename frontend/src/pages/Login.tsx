@@ -48,8 +48,8 @@ export const Login: React.FC<Props> = ({ onLoginSuccess }) => {
           <div className="inline-flex h-12 w-12 rounded-2xl bg-gradient-to-tr from-civic-600 to-cyan-400 items-center justify-center text-white shadow-xl shadow-civic-500/20 mb-2">
             <Cpu className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">CivicAI Command Station</h1>
-          <p className="text-xs text-slate-400">AI-Powered Citizen Call Intelligence & Governance</p>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">rapidAID Command Station</h1>
+          <p className="text-xs text-slate-400">AI-Powered Citizen Call Intelligence & Emergency Resource Allocation</p>
         </div>
 
         {/* Form Card */}

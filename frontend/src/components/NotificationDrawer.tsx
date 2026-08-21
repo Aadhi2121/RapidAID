@@ -63,7 +63,7 @@ export const NotificationDrawer: React.FC<Props> = ({
       <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
         <div className="flex items-center gap-2">
           <Bell className="h-5 w-5 text-civic-400" />
-          <h3 className="font-bold text-white text-base">Civic Intelligence Feed</h3>
+          <h3 className="font-bold text-white text-base">rapidAID Intelligence Feed</h3>
         </div>
         <div className="flex items-center gap-2">
           <button

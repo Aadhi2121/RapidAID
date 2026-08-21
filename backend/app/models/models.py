@@ -251,3 +251,236 @@ class AIAnalysis(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     complaint = relationship("Complaint", back_populates="ai_analyses")
+
+
+# ============================================================================
+# EMERGENCY RESPONSE & INTELLIGENT RESOURCE ALLOCATION MODELS
+# ============================================================================
+
+class EmergencyMode(str, enum.Enum):
+    NORMAL = "NORMAL"
+    ELEVATED = "ELEVATED"
+    HIGH_ALERT = "HIGH_ALERT"
+    DISASTER = "DISASTER"
+
+class EmergencyType(str, enum.Enum):
+    ROAD_ACCIDENT = "ROAD_ACCIDENT"
+    BUILDING_COLLAPSE = "BUILDING_COLLAPSE"
+    FIRE = "FIRE"
+    INDUSTRIAL_ACCIDENT = "INDUSTRIAL_ACCIDENT"
+    FLOOD = "FLOOD"
+    CYCLONE = "CYCLONE"
+    HAZMAT = "HAZMAT"
+    MASS_CASUALTY = "MASS_CASUALTY"
+    OTHER = "OTHER"
+
+class ResourceCategory(str, enum.Enum):
+    AMBULANCE = "AMBULANCE"
+    FIRE_RESCUE = "FIRE_RESCUE"
+    SPECIALIZED = "SPECIALIZED"
+    MEDICAL_TEAM = "MEDICAL_TEAM"
+
+class ResourceType(str, enum.Enum):
+    BLS_AMBULANCE = "BLS_AMBULANCE"
+    ALS_AMBULANCE = "ALS_AMBULANCE"
+    VENTILATOR_AMBULANCE = "VENTILATOR_AMBULANCE"
+    FIRE_ENGINE = "FIRE_ENGINE"
+    LADDER_TRUCK = "LADDER_TRUCK"
+    HAZMAT_UNIT = "HAZMAT_UNIT"
+    RESCUE_VEHICLE = "RESCUE_VEHICLE"
+    HEAVY_RESCUE_TEAM = "HEAVY_RESCUE_TEAM"
+
+class ResourceStatus(str, enum.Enum):
+    AVAILABLE = "AVAILABLE"
+    DISPATCHED = "DISPATCHED"
+    EN_ROUTE = "EN_ROUTE"
+    ON_SCENE = "ON_SCENE"
+    RETURNING = "RETURNING"
+    MAINTENANCE = "MAINTENANCE"
+
+class HospitalStatus(str, enum.Enum):
+    ACCEPTING = "ACCEPTING"
+    LIMITED = "LIMITED"
+    NEAR_CAPACITY = "NEAR_CAPACITY"
+    FULL = "FULL"
+
+class PatientTriageStatus(str, enum.Enum):
+    CRITICAL = "CRITICAL"
+    MODERATE = "MODERATE"
+    MINOR = "MINOR"
+    DECEASED = "DECEASED"
+    PENDING = "PENDING"
+
+class PatientRescueStatus(str, enum.Enum):
+    TRAPPED = "TRAPPED"
+    BEING_RESCUED = "BEING_RESCUED"
+    RESCUED = "RESCUED"
+    TRANSPORTING = "TRANSPORTING"
+    HOSPITALIZED = "HOSPITALIZED"
+
+class LocationSource(str, enum.Enum):
+    CALLER_GPS = "CALLER_GPS"
+    DEVICE_GPS = "DEVICE_GPS"
+    INCIDENT_LOCATION = "INCIDENT_LOCATION"
+    AMBULANCE_GPS = "AMBULANCE_GPS"
+    HOSPITAL_LOCATION = "HOSPITAL_LOCATION"
+    ESTIMATED = "ESTIMATED"
+    MANUAL = "MANUAL"
+
+class LocationConfidence(str, enum.Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+class DispatchStatus(str, enum.Enum):
+    RECOMMENDED = "RECOMMENDED"
+    DISPATCHED = "DISPATCHED"
+    EN_ROUTE = "EN_ROUTE"
+    ON_SCENE = "ON_SCENE"
+    TRANSPORTING = "TRANSPORTING"
+    COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
+
+
+class EmergencySystemState(Base):
+    __tablename__ = "emergency_system_state"
+
+    id = Column(Integer, primary_key=True, index=True)
+    current_mode = Column(String(50), default=EmergencyMode.NORMAL.value, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class EmergencyIncident(Base):
+    __tablename__ = "emergency_incidents"
+
+    id = Column(String(50), primary_key=True, index=True)  # e.g. EMG-2026-0001
+    type = Column(String(50), default=EmergencyType.ROAD_ACCIDENT.value, nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    location_name = Column(String(255), default="Chennai")
+    injured_count = Column(Integer, default=0)
+    critical_count = Column(Integer, default=0)
+    trapped_count = Column(Integer, default=0)
+    vulnerable_count = Column(Integer, default=0)
+    fire_severity = Column(String(50), default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    fire_spread_risk = Column(String(50), default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    collapse_risk = Column(String(50), default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    hazmat_risk = Column(String(50), default="LOW")  # LOW, MEDIUM, HIGH, CRITICAL
+    road_accessibility = Column(String(50), default="CLEAR")  # CLEAR, RESTRICTED, BLOCKED
+    traffic_level = Column(String(50), default="LOW")  # LOW, MEDIUM, HIGH
+    population_density = Column(String(50), default="MEDIUM")  # LOW, MEDIUM, HIGH
+    required_capabilities = Column(Text, nullable=True)  # JSON string of required capabilities
+    priority_score = Column(Float, default=50.0)
+    priority_level = Column(String(50), default="MEDIUM")  # LOW, MEDIUM, HIGH, CRITICAL
+    status = Column(String(50), default="ACTIVE")  # ACTIVE, CONTAINED, RESOLVED
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    patients = relationship("PatientEmergencyRecord", back_populates="incident", cascade="all, delete-orphan")
+    dispatches = relationship("ResourceDispatch", back_populates="incident", cascade="all, delete-orphan")
+
+
+class EmergencyResource(Base):
+    __tablename__ = "emergency_resources"
+
+    id = Column(String(50), primary_key=True, index=True)  # e.g. AMB-ALS-01
+    name = Column(String(255), nullable=False)
+    resource_type = Column(String(50), nullable=False)  # ResourceType
+    category = Column(String(50), nullable=False)  # ResourceCategory
+    latitude = Column(Float, default=13.0827)
+    longitude = Column(Float, default=80.2707)
+    location = Column(String(255), default="Chennai")
+    availability = Column(Boolean, default=True)
+    status = Column(String(50), default=ResourceStatus.AVAILABLE.value)
+    capacity = Column(Integer, default=1)
+    equipment = Column(Text, nullable=True)  # JSON list
+    capabilities = Column(Text, nullable=True)  # JSON list
+    oxygen_capability = Column(Boolean, default=False)
+    ventilator_capability = Column(Boolean, default=False)
+    paramedic_capability = Column(Boolean, default=False)
+    ladder_capability = Column(Boolean, default=False)
+    hazmat_capability = Column(Boolean, default=False)
+    heavy_rescue_capability = Column(Boolean, default=False)
+    current_assignment = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    dispatches = relationship("ResourceDispatch", back_populates="resource")
+
+
+class Hospital(Base):
+    __tablename__ = "hospitals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), unique=True, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    total_beds = Column(Integer, default=100)
+    available_beds = Column(Integer, default=20)
+    emergency_beds = Column(Integer, default=20)
+    available_emergency_beds = Column(Integer, default=5)
+    icu_beds = Column(Integer, default=10)
+    available_icu_beds = Column(Integer, default=2)
+    ventilators = Column(Integer, default=10)
+    available_ventilators = Column(Integer, default=2)
+    trauma_capability = Column(Boolean, default=True)
+    operating_theatre_availability = Column(Integer, default=2)
+    emergency_department_occupancy = Column(Float, default=70.0)  # Percentage 0-100
+    incoming_patient_count = Column(Integer, default=0)
+    status = Column(String(50), default=HospitalStatus.ACCEPTING.value)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class PatientEmergencyRecord(Base):
+    __tablename__ = "patient_emergency_records"
+
+    id = Column(String(50), primary_key=True, index=True)  # e.g. PAT-1001
+    emergency_id = Column(String(50), ForeignKey("emergency_incidents.id"), nullable=False)
+    triage_status = Column(String(50), default=PatientTriageStatus.CRITICAL.value)
+    rescue_status = Column(String(50), default=PatientRescueStatus.TRAPPED.value)
+    incident_location = Column(String(255), nullable=True)
+    current_latitude = Column(Float, nullable=True)
+    current_longitude = Column(Float, nullable=True)
+    location_source = Column(String(50), default=LocationSource.INCIDENT_LOCATION.value)
+    location_confidence = Column(String(50), default=LocationConfidence.HIGH.value)
+    assigned_ambulance = Column(String(50), nullable=True)
+    destination_hospital = Column(String(255), nullable=True)
+    ventilator_requirement = Column(Boolean, default=False)
+    notes = Column(Text, nullable=True)
+    last_updated = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    incident = relationship("EmergencyIncident", back_populates="patients")
+
+
+class ResourceDispatch(Base):
+    __tablename__ = "resource_dispatches"
+
+    id = Column(String(50), primary_key=True, index=True)  # e.g. DSP-2026-0001
+    incident_id = Column(String(50), ForeignKey("emergency_incidents.id"), nullable=False)
+    resource_id = Column(String(50), ForeignKey("emergency_resources.id"), nullable=False)
+    status = Column(String(50), default=DispatchStatus.RECOMMENDED.value)
+    eta_minutes = Column(Float, default=5.0)
+    reasoning = Column(Text, nullable=True)
+    recommended_at = Column(DateTime, default=datetime.utcnow)
+    dispatched_at = Column(DateTime, nullable=True)
+    confirmed_by = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    incident = relationship("EmergencyIncident", back_populates="dispatches")
+    resource = relationship("EmergencyResource", back_populates="dispatches")
+
+
+class EmergencyModeEvent(Base):
+    __tablename__ = "emergency_mode_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    previous_mode = Column(String(50), default=EmergencyMode.NORMAL.value)
+    new_mode = Column(String(50), nullable=False)
+    changed_by = Column(String(255), nullable=False)
+    reason = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)

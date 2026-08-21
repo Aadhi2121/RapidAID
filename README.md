@@ -1,8 +1,8 @@
-# CivicAI — AI-Powered Citizen Call Intelligence Platform
+# rapidAID — Citizen Call Intelligence & Emergency Resource Allocation Platform
 
-> **Transforming unstructured citizen voice & text calls into structured government intelligence, intelligent department routing, explainable priority scoring, SLA breach forecasting, and predictive governance.**
+> **Transforming unstructured citizen voice & text calls into structured municipal intelligence, emergency disaster triage, explainable priority scoring, hospital routing, and intelligent resource allocation.**
 
-![CivicAI Platform](https://img.shields.io/badge/CivicAI-v1.0.0-0284c7?style=for-the-badge)
+![rapidAID Platform](https://img.shields.io/badge/rapidAID-v1.0.0-0284c7?style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi)
 ![React](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript)

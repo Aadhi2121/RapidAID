@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # --- AUTH SCHEMAS ---
 class UserBase(BaseModel):
@@ -333,3 +334,347 @@ class HotspotPoint(BaseModel):
 class AnalyticsHotspotsResponse(BaseModel):
     hotspots: List[HotspotPoint]
     critical_zones: List[Dict[str, Any]]
+
+
+# ============================================================================
+# EMERGENCY RESPONSE SCHEMAS
+# ============================================================================
+
+class EmergencyModeResponse(BaseModel):
+    current_mode: str
+    updated_at: datetime
+    history: Optional[List[Dict[str, Any]]] = []
+
+    class Config:
+        from_attributes = True
+
+class EmergencyModeUpdateRequest(BaseModel):
+    mode: str
+    reason: Optional[str] = "Manual operator mode shift"
+
+class PatientEmergencyRecordResponse(BaseModel):
+    id: str
+    emergency_id: str
+    triage_status: str
+    rescue_status: str
+    incident_location: Optional[str] = None
+    current_latitude: Optional[float] = None
+    current_longitude: Optional[float] = None
+    location_source: str
+    location_confidence: str
+    assigned_ambulance: Optional[str] = None
+    destination_hospital: Optional[str] = None
+    ventilator_requirement: bool = False
+    notes: Optional[str] = None
+    last_updated: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PatientLocationUpdateRequest(BaseModel):
+    current_latitude: Optional[float] = None
+    current_longitude: Optional[float] = None
+    location_source: str
+    location_confidence: str = "HIGH"
+    assigned_ambulance: Optional[str] = None
+    destination_hospital: Optional[str] = None
+    triage_status: Optional[str] = None
+    rescue_status: Optional[str] = None
+    notes: Optional[str] = None
+
+class ResourceDispatchResponse(BaseModel):
+    id: str
+    incident_id: str
+    resource_id: str
+    resource_name: Optional[str] = None
+    resource_type: Optional[str] = None
+    status: str
+    eta_minutes: float
+    reasoning: Optional[str] = None
+    recommended_at: datetime
+    dispatched_at: Optional[datetime] = None
+    confirmed_by: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class EmergencyIncidentCreate(BaseModel):
+    id: Optional[str] = None
+    type: str = "ROAD_ACCIDENT"
+    title: str
+    description: Optional[str] = None
+    latitude: float
+    longitude: float
+    location_name: Optional[str] = "Chennai"
+    injured_count: int = 0
+    critical_count: int = 0
+    trapped_count: int = 0
+    vulnerable_count: int = 0
+    fire_severity: str = "LOW"
+    fire_spread_risk: str = "LOW"
+    collapse_risk: str = "LOW"
+    hazmat_risk: str = "LOW"
+    road_accessibility: str = "CLEAR"
+    traffic_level: str = "LOW"
+    population_density: str = "MEDIUM"
+    required_capabilities: Optional[List[str]] = None
+
+class EmergencyIncidentUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    injured_count: Optional[int] = None
+    critical_count: Optional[int] = None
+    trapped_count: Optional[int] = None
+    vulnerable_count: Optional[int] = None
+    fire_severity: Optional[str] = None
+    fire_spread_risk: Optional[str] = None
+    collapse_risk: Optional[str] = None
+    hazmat_risk: Optional[str] = None
+    road_accessibility: Optional[str] = None
+    traffic_level: Optional[str] = None
+    population_density: Optional[str] = None
+    status: Optional[str] = None
+
+class EmergencyIncidentResponse(BaseModel):
+    id: str
+    type: str
+    title: str
+    description: Optional[str] = None
+    latitude: float
+    longitude: float
+    location_name: str
+    injured_count: int
+    critical_count: int
+    trapped_count: int
+    vulnerable_count: int
+    fire_severity: str
+    fire_spread_risk: str
+    collapse_risk: str
+    hazmat_risk: str
+    road_accessibility: str
+    traffic_level: str
+    population_density: str
+    required_capabilities: Optional[List[str]] = []
+    priority_score: float
+    priority_level: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    patients: Optional[List[PatientEmergencyRecordResponse]] = []
+    dispatches: Optional[List[ResourceDispatchResponse]] = []
+
+    @field_validator("required_capabilities", mode="before")
+    @classmethod
+    def parse_required_capabilities(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v] if v else []
+        return v or []
+
+    class Config:
+        from_attributes = True
+
+class EmergencyResourceCreate(BaseModel):
+    id: str
+    name: str
+    resource_type: str
+    category: str
+    latitude: float = 13.0827
+    longitude: float = 80.2707
+    location: str = "Chennai"
+    availability: bool = True
+    status: str = "AVAILABLE"
+    capacity: int = 1
+    equipment: Optional[List[str]] = []
+    capabilities: Optional[List[str]] = []
+    oxygen_capability: bool = False
+    ventilator_capability: bool = False
+    paramedic_capability: bool = False
+    ladder_capability: bool = False
+    hazmat_capability: bool = False
+    heavy_rescue_capability: bool = False
+
+class EmergencyResourceResponse(BaseModel):
+    id: str
+    name: str
+    resource_type: str
+    category: str
+    latitude: float
+    longitude: float
+    location: str
+    availability: bool
+    status: str
+    capacity: int
+    equipment: Optional[List[str]] = []
+    capabilities: Optional[List[str]] = []
+    oxygen_capability: bool
+    ventilator_capability: bool
+    paramedic_capability: bool
+    ladder_capability: bool
+    hazmat_capability: bool
+    heavy_rescue_capability: bool
+    current_assignment: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator("equipment", "capabilities", mode="before")
+    @classmethod
+    def parse_json_lists(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v] if v else []
+        return v or []
+
+    class Config:
+        from_attributes = True
+
+class HospitalCreate(BaseModel):
+    name: str
+    latitude: float
+    longitude: float
+    total_beds: int = 100
+    available_beds: int = 20
+    emergency_beds: int = 20
+    available_emergency_beds: int = 5
+    icu_beds: int = 10
+    available_icu_beds: int = 2
+    ventilators: int = 10
+    available_ventilators: int = 2
+    trauma_capability: bool = True
+    operating_theatre_availability: int = 2
+    emergency_department_occupancy: float = 70.0
+    status: str = "ACCEPTING"
+
+class HospitalResponse(BaseModel):
+    id: int
+    name: str
+    latitude: float
+    longitude: float
+    total_beds: int
+    available_beds: int
+    emergency_beds: int
+    available_emergency_beds: int
+    icu_beds: int
+    available_icu_beds: int
+    ventilators: int
+    available_ventilators: int
+    trauma_capability: bool
+    operating_theatre_availability: int
+    emergency_department_occupancy: float
+    incoming_patient_count: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class HospitalCapacityOverview(BaseModel):
+    total_hospitals: int
+    total_icu_beds: int
+    available_icu_beds: int
+    total_er_beds: int
+    available_er_beds: int
+    total_ventilators: int
+    available_ventilators: int
+    avg_occupancy: float
+    hospitals: List[HospitalResponse]
+
+class PriorityScoreResponse(BaseModel):
+    casualty_score: float
+    hazard_score: float
+    geographic_score: float
+    system_stress_score: float
+    total_score: float
+    priority_level: str
+    reasons: List[str]
+
+class DispatchConfirmRequest(BaseModel):
+    incident_id: str
+    resource_id: str
+    status: str = "DISPATCHED"
+    reasoning: Optional[str] = None
+    eta_minutes: Optional[float] = 5.0
+
+class DispatchStatusUpdateRequest(BaseModel):
+    status: str
+
+class BypassedHospital(BaseModel):
+    hospital_name: str
+    eta_minutes: float
+    reason: str
+
+class HospitalRoutingDecision(BaseModel):
+    recommended_hospital: Optional[HospitalResponse] = None
+    hospital_score: float
+    eta_minutes: float
+    reasons: List[str]
+    bypassed_hospitals: List[BypassedHospital] = []
+
+class AllocatedDispatchItem(BaseModel):
+    incident_id: str
+    incident_title: str
+    resource_id: str
+    resource_name: str
+    resource_type: str
+    eta_minutes: float
+    suitability_score: float
+    reasoning: str
+    status: str = "RECOMMENDED"
+
+class ResourceConflictAlert(BaseModel):
+    resource_id: str
+    resource_type: str
+    contending_incidents: List[str]
+    awarded_to_incident_id: str
+    reason: str
+
+class ResourceShortageAlert(BaseModel):
+    capability: str
+    required_count: int
+    available_count: int
+    deficit: int
+    severity: str
+    message: str
+
+class GlobalAllocationResult(BaseModel):
+    emergency_mode: str
+    active_incidents_count: int
+    allocated_dispatches: List[AllocatedDispatchItem]
+    conflicts: List[ResourceConflictAlert]
+    shortages: List[ResourceShortageAlert]
+    mitigations: List[str]
+    hospital_routings: Dict[str, HospitalRoutingDecision]
+
+class EmergencyAnalyticsResponse(BaseModel):
+    emergency_mode: str
+    active_incidents: int
+    total_casualties: int
+    critical_casualties: int
+    trapped_victims: int
+    available_ambulances: int
+    total_ambulances: int
+    available_fire_units: int
+    total_fire_units: int
+    total_icu_beds: int
+    available_icu_beds: int
+    total_er_beds: int
+    available_er_beds: int
+    avg_hospital_occupancy: float
+    avg_dispatch_time_minutes: float
+    avg_response_time_minutes: float
+    ambulance_utilization_rate: float
+    fire_rescue_utilization_rate: float
+    icu_utilization_rate: float
+    resource_conflicts_detected: int
+    resource_shortages_detected: int
+    emergency_hotspots: List[Dict[str, Any]]
+    predictive_insights: List[Dict[str, Any]]
+

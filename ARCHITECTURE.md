@@ -1,6 +1,6 @@
-# CivicAI — Architecture & Rapid-Aid Adaptation
+# rapidAID — Unified Call Intelligence & Emergency Resource Allocation Architecture
 
-## 1. Existing Project Inspection & Analysis
+## 1. Platform Architecture Overview
 
 During inspection of the workspace and existing files, we identified the **Rapid-Aid** repository (`Rapid-Aid-main`):
 - **Core ML Notebook (`Rapid-Aid.ipynb`)**: Implemented emergency call triage using Whisper for ASR, spaCy for basic entity extraction, `RandomForestClassifier` for severity classification, `GradientBoostingRegressor` for response time prediction, and `LogisticRegression` for outcome risk.

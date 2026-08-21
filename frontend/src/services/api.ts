@@ -9,7 +9,18 @@ import {
   AnalyticsOverview,
   AnalyticsTrends,
   AnalyticsHotspots,
-  NotificationItem
+  NotificationItem,
+  EmergencyMode,
+  EmergencyModeResponse,
+  EmergencyIncident,
+  EmergencyResource,
+  Hospital,
+  HospitalCapacityOverview,
+  PatientEmergencyRecord,
+  ResourceDispatch,
+  GlobalAllocationResult,
+  EmergencyAnalytics,
+  PriorityLevel,
 } from '../types';
 
 
@@ -191,6 +202,165 @@ export const notificationsApi = {
   },
   markAllRead: async () => {
     const res = await api.post<{ message: string }>('/notifications/mark-all-read');
+    return res.data;
+  },
+};
+
+export const emergencyApi = {
+  getMode: async () => {
+    const res = await api.get<EmergencyModeResponse>('/emergency/mode');
+    return res.data;
+  },
+  setMode: async (mode: string, reason?: string, changedBy: string = 'Admin Commissioner') => {
+    const res = await api.post<EmergencyModeResponse>(
+      `/emergency/mode?changed_by=${encodeURIComponent(changedBy)}`,
+      { mode, reason }
+    );
+    return res.data;
+  },
+  getIncidents: async (status?: string, type?: string) => {
+    const res = await api.get<EmergencyIncident[]>('/emergency/incidents', {
+      params: { status, type },
+    });
+    return res.data;
+  },
+  getIncidentDetail: async (id: string) => {
+    const res = await api.get<EmergencyIncident>(`/emergency/incidents/${id}`);
+    return res.data;
+  },
+  createIncident: async (data: Partial<EmergencyIncident>) => {
+    const res = await api.post<EmergencyIncident>('/emergency/incidents', data);
+    return res.data;
+  },
+  updateIncident: async (id: string, data: Partial<EmergencyIncident>) => {
+    const res = await api.patch<EmergencyIncident>(`/emergency/incidents/${id}`, data);
+    return res.data;
+  },
+  getPriorityQueue: async () => {
+    const res = await api.get<{
+      emergency_mode: EmergencyMode;
+      queue: {
+        incident_id: string;
+        type: string;
+        title: string;
+        location_name: string;
+        latitude: number;
+        longitude: number;
+        critical_count: number;
+        injured_count: number;
+        trapped_count: number;
+        priority_score: number;
+        priority_level: PriorityLevel;
+        breakdown: any;
+        created_at: string;
+      }[];
+    }>('/emergency/priority-queue');
+    return res.data;
+  },
+  getResources: async () => {
+    const res = await api.get<EmergencyResource[]>('/emergency/resources');
+    return res.data;
+  },
+  getAmbulances: async () => {
+    const res = await api.get<EmergencyResource[]>('/emergency/ambulances');
+    return res.data;
+  },
+  getFireUnits: async () => {
+    const res = await api.get<EmergencyResource[]>('/emergency/fire-units');
+    return res.data;
+  },
+  getHospitals: async () => {
+    const res = await api.get<Hospital[]>('/emergency/hospitals');
+    return res.data;
+  },
+  getHospitalsCapacity: async () => {
+    const res = await api.get<HospitalCapacityOverview>('/emergency/hospitals/capacity');
+    return res.data;
+  },
+  getPatients: async (emergencyId?: string, triageStatus?: string) => {
+    const res = await api.get<PatientEmergencyRecord[]>('/emergency/patients', {
+      params: { emergency_id: emergencyId, triage_status: triageStatus },
+    });
+    return res.data;
+  },
+  getPatientLocation: async (id: string) => {
+    const res = await api.get<{
+      patient_id: string;
+      emergency_id: string;
+      current_latitude: number;
+      current_longitude: number;
+      location_source: string;
+      location_confidence: string;
+      last_updated: string;
+      assigned_ambulance?: string;
+      destination_hospital?: string;
+      simulation_disclaimer: string;
+    }>(`/emergency/patients/${id}/location`);
+    return res.data;
+  },
+  updatePatientLocation: async (
+    id: string,
+    data: {
+      current_latitude?: number;
+      current_longitude?: number;
+      location_source?: string;
+      location_confidence?: string;
+      assigned_ambulance?: string;
+      destination_hospital?: string;
+      triage_status?: string;
+      rescue_status?: string;
+      notes?: string;
+    }
+  ) => {
+    const res = await api.patch<PatientEmergencyRecord>(`/emergency/patients/${id}/location`, data);
+    return res.data;
+  },
+  getDispatches: async (status?: string, incidentId?: string) => {
+    const res = await api.get<ResourceDispatch[]>('/emergency/dispatches', {
+      params: { status, incident_id: incidentId },
+    });
+    return res.data;
+  },
+  allocate: async () => {
+    const res = await api.post<GlobalAllocationResult>('/emergency/allocate');
+    return res.data;
+  },
+  confirmDispatch: async (
+    data: {
+      incident_id: string;
+      resource_id: string;
+      status?: string;
+      reasoning?: string;
+      eta_minutes?: number;
+    },
+    operator: string = 'Admin Commissioner'
+  ) => {
+    const res = await api.post<ResourceDispatch>(
+      `/emergency/dispatch?operator=${encodeURIComponent(operator)}`,
+      data
+    );
+    return res.data;
+  },
+  updateDispatchStatus: async (dispatchId: string, status: string) => {
+    const res = await api.patch<ResourceDispatch>(`/emergency/dispatches/${dispatchId}/status`, {
+      status,
+    });
+    return res.data;
+  },
+  getAnalytics: async () => {
+    const res = await api.get<EmergencyAnalytics>('/emergency/analytics');
+    return res.data;
+  },
+  resetScenario: async () => {
+    const res = await api.post<{
+      status: string;
+      message: string;
+      emergency_mode: EmergencyMode;
+      active_incidents_count: number;
+      total_patients_seeded: number;
+      allocation_result: GlobalAllocationResult;
+      disclaimer: string;
+    }>('/emergency/demo/reset-scenario');
     return res.data;
   },
 };
